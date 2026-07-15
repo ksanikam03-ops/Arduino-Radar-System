@@ -1,0 +1,90 @@
+Arduino Code For Radar
+#include <Servo.h>
+
+Servo myServo;
+
+const int trigPin = 10;
+const int echoPin = 11;
+
+const int ledPin = 7;
+const int buzzerPin = 8;
+
+long duration;
+int distance;
+
+void setup() {
+  Serial.begin(9600);
+  myServo.attach(9);
+
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  pinMode(ledPin, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
+}
+
+void loop() {
+
+  for (int angle = 0; angle <= 180; angle++) {
+    myServo.write(angle);
+    delay(30);
+
+    distance = getDistance();
+
+    // 👉 LIMIT DISPLAY TO 60 cm
+    if (distance > 60) {
+      distance = 0;
+    }
+
+    // 🚨 DETECTION UP TO 60 cm
+    if (distance > 0 && distance <= 60) {
+      digitalWrite(ledPin, HIGH);
+      digitalWrite(buzzerPin, HIGH);
+    } else {
+      digitalWrite(ledPin, LOW);
+      digitalWrite(buzzerPin, LOW);
+    }
+
+    Serial.print(angle);
+    Serial.print(",");
+    Serial.println(distance);
+  }
+
+  for (int angle = 180; angle >= 0; angle--) {
+    myServo.write(angle);
+    delay(30);
+
+    distance = getDistance();
+
+    if (distance > 60) {
+      distance = 0;
+    }
+
+    if (distance > 0 && distance <= 60) {
+      digitalWrite(ledPin, HIGH);
+      digitalWrite(buzzerPin, HIGH);
+    } else {
+      digitalWrite(ledPin, LOW);
+      digitalWrite(buzzerPin, LOW);
+    }
+
+    Serial.print(angle);
+    Serial.print(",");
+    Serial.println(distance);
+  }
+}
+
+// 📏 FUNCTION
+int getDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH);
+  int dist = duration * 0.034 / 2;
+
+  return dist;
+}
